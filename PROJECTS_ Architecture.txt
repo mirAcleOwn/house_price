@@ -1,0 +1,66 @@
+review_house_pricing/
+│
+├── config/
+│   └── config.py               # пути, CV-параметры, гиперпараметры всех моделей
+│
+├── src/
+│   ├── data_processing/
+│   │   ├── load.py             # load_raw_data, quick_overview
+│   │   ├── impute.py           # build_imputer, apply_imputer (ColumnTransformer)
+│   │   └── preprocess.py       # run_pipeline — оркестратор всего preprocessing
+│   │
+│   ├── features/
+│   │   └── build_features.py   # domain features, ordinal encoding, skew fix, OHE
+│   │
+│   ├── eda/
+│   │   └── plots.py            # plot_target_distribution, plot_missing_values,
+│   │                           # plot_top_correlations, plot_outlier_check,
+│   │                           # plot_numeric_distributions, plot_correlation_heatmap
+│   │
+│   ├── models/
+│   │   ├── base.py             # cross_val_predict — общий K-fold CV цикл
+│   │   ├── linear.py           # Ridge, Lasso, ElasticNet + RobustScaler
+│   │   ├── gradient_boosting.py# LightGBM, XGBoost, CatBoost с early stopping
+│   │   ├── stacking.py         # Ridge мета-леарнер на OOF предсказаниях
+│   │   └── NN_with_some_layers.py  # MLP: BatchNorm + SiLU + Dropout + HuberLoss
+│   │
+│   └── utils/
+│       ├── helpers.py          # set_seed, rmsle, Timer, save/load_pickle
+│       └── artifacts.py        # save_oof_predictions, save_cv_scores,
+│                               # save_feature_importances
+│
+├── notebooks/
+│   └── 01_EDA.ipynb            # разведочный анализ данных
+│
+├── data/
+│   ├── raw/
+│   │   ├── train.csv
+│   │   ├── test.csv
+│   │   ├── sample_submission.csv
+│   │   └── data_description.txt
+│   ├── processed/              # промежуточные данные (в .gitignore)
+│   └── submissions/            # CSV-файлы для загрузки на Kaggle (в .gitignore)
+│
+├── train.py                    # обучение всех моделей → артефакты + submission
+├── predict.py                  # инференс из сохранённых моделей → submission
+└── requirements.txt
+
+
+Пайплайн обучения (train.py):
+    Preprocessing → Ridge / Lasso / ElasticNet
+                  → LightGBM / XGBoost / CatBoost  (early stopping, OOF)
+                  → Neural Net MLP                  (опционально, если torch)
+                  → Stacking Ridge мета-леарнер
+                  → submission_stacking.csv
+
+Артефакты после train.py (models/):
+    *_models.pkl            — fold-модели каждого алгоритма
+    stacking_meta.pkl       — обученный Ridge мета-леарнер
+    model_names.pkl         — порядок моделей для стекинга
+    oof_predictions.csv     — OOF предсказания + residuals
+    cv_scores.json          — CV RMSLE всех моделей
+    feature_importances.csv — усреднённая важность признаков (бустинги)
+
+Инференс (predict.py):
+    Загружает артефакты из models/ → прогоняет test.csv через тот же
+    preprocessing → генерирует submission без переобучения.

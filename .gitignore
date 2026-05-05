@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+.env
+
+# Artifacts — не коммитим модели и submission-файлы
+data/processed/
+data/submissions/
+models/
+*.pt
+*.pth
+
+# Notebooks
+.ipynb_checkpoints/
+
+# IDE
+.vscode/
+.idea/
+.DS_Store
