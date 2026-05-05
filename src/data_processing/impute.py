@@ -60,6 +60,17 @@ def apply_imputer(transformer, df, target):
     transformed = transformer.transform(df[feature_cols])
     result = pd.DataFrame(transformed, columns=transformer.get_feature_names_out(), index=df.index)
 
+    # ColumnTransformer возвращает numpy object-массив при смешанных типах —
+    # принудительно восстанавливаем числовые dtype, иначе get_dummies создаёт
+    # по колонке на каждое уникальное значение числовых фич
+    def _to_numeric(col):
+        try:
+            return pd.to_numeric(col)
+        except (ValueError, TypeError):
+            return col
+
+    result = result.apply(_to_numeric)
+
     if target and target in df.columns:
         result[target] = df[target].values
 

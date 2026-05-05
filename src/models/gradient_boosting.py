@@ -49,19 +49,18 @@ def train_lgbm(X, y, params: dict, n_folds: int = 5, random_state: int = 42) -> 
         X_tr, X_val = X.iloc[tr_idx], X.iloc[val_idx]
         y_tr, y_val = y.iloc[tr_idx], y.iloc[val_idx]
 
-        model = lgb.LGBMRegressor(
-            **p,
-            callbacks=[
-                lgb.early_stopping(early, verbose=False),
-                lgb.log_evaluation(-1),
-            ],
+        model = lgb.LGBMRegressor(**p)
+        model.fit(
+            X_tr, y_tr,
+            eval_set=[(X_val, y_val)],
+            callbacks=[lgb.early_stopping(early, verbose=False), lgb.log_evaluation(-1)],
         )
-        model.fit(X_tr, y_tr, eval_set=[(X_val, y_val)])
         oof[val_idx] = model.predict(X_val)
 
+        best = model.best_iteration_ or p.get("n_estimators", "?")
         models.append(model)
         print(f"  Fold {fold + 1}/{n_folds}: {rmsle(y_val, oof[val_idx]):.5f}"
-              f"  (trees: {model.best_iteration_})")
+              f"  (trees: {best})")
 
     cv = rmsle(y, oof)
     print(f"  LightGBM CV: {cv:.5f}")

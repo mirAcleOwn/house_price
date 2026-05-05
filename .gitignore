@@ -15,6 +15,9 @@ data/submissions/
 *.pt
 *.pth
 
+# CatBoost training logs
+catboost_info/
+
 # Notebooks
 .ipynb_checkpoints/
 

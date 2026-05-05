@@ -219,4 +219,8 @@ def build_features(
     # После get_dummies тест может иметь меньше колонок (редкие категории)
     X_train, X_test = X_train.align(X_test, join="left", axis=1, fill_value=0)
 
+    # LightGBM не принимает пробелы в именах — заменяем превентивно для всех моделей
+    X_train.columns = X_train.columns.str.replace(r"[\s,\[\]<>{}()?%#$]", "_", regex=True)
+    X_test.columns  = X_test.columns.str.replace(r"[\s,\[\]<>{}()?%#$]", "_", regex=True)
+
     return X_train, X_test
