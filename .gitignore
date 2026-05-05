@@ -11,7 +11,7 @@ build/
 # Artifacts — не коммитим модели и submission-файлы
 data/processed/
 data/submissions/
-models/
+/models/
 *.pt
 *.pth
 
